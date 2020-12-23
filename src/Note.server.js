@@ -16,11 +16,9 @@ import NotePreview from './NotePreview';
 import EditButton from './EditButton.client';
 import NoteEditor from './NoteEditor.client';
 
-export default function Note({selectedId, isEditing}) {
+export default function Note({id, isEditing}) {
   const note =
-    selectedId != null
-      ? fetch(`http://localhost:4000/notes/${selectedId}`).json()
-      : null;
+    id != null ? fetch(`http://localhost:4000/notes/${id}`).json() : null;
 
   if (note === null) {
     if (isEditing) {
@@ -38,7 +36,7 @@ export default function Note({selectedId, isEditing}) {
     }
   }
 
-  let {id, title, body, updated_at} = note;
+  let {title, body, updated_at} = note;
   const updatedAt = new Date(updated_at);
 
   // We could also read from a file instead.

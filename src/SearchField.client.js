@@ -11,10 +11,10 @@ import {useState, unstable_useTransition} from 'react';
 import {useLocation} from './LocationContext.client';
 import Spinner from './Spinner';
 
-export default function SearchField() {
-  const [text, setText] = useState('');
+export default function SearchField({ searchText, setSearchText }) {
+  const [text, setText] = useState(searchText);
   const [startSearching, isSearching] = unstable_useTransition(false);
-  const [, setLocation] = useLocation();
+
   return (
     <form className="search" role="search" onSubmit={(e) => e.preventDefault()}>
       <label className="offscreen" htmlFor="sidebar-search-input">
@@ -23,15 +23,12 @@ export default function SearchField() {
       <input
         id="sidebar-search-input"
         placeholder="Search"
-        value={text}
+        value={searchText}
         onChange={(e) => {
-          const newText = e.target.value;
-          setText(newText);
+          const newValue = e.target.value;
+          setText(newValue);
           startSearching(() => {
-            setLocation((loc) => ({
-              ...loc,
-              searchText: newText,
-            }));
+            setSearchText(newValue);
           });
         }}
       />

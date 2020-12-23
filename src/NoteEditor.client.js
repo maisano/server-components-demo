@@ -7,7 +7,6 @@
  */
 
 import {useState, unstable_useTransition} from 'react';
-import {createFromReadableStream} from 'react-server-dom-webpack';
 
 import NotePreview from './NotePreview';
 import {useRefresh} from './Cache.client';
@@ -29,34 +28,26 @@ export default function NoteEditor({noteId, initialTitle, initialBody}) {
   });
 
   async function handleSave() {
-    const payload = {title, body};
-    const requestedLocation = {
-      selectedId: noteId,
-      isEditing: false,
-      searchText: location.searchText,
-    };
-    const response = await saveNote(payload, requestedLocation);
-    navigate(response);
+    const response = await saveNote({title, body});
+
+    startNavigating(() => {
+      refresh();
+      setLocation({
+        isEditing: false,
+        selectedId: noteId,
+      });
+    });
   }
 
   async function handleDelete() {
-    const payload = {};
-    const requestedLocation = {
-      selectedId: null,
-      isEditing: false,
-      searchText: location.searchText,
-    };
-    const response = await deleteNote(payload, requestedLocation);
-    navigate(response);
-  }
+    const response = await deleteNote();
 
-  function navigate(response) {
-    const cacheKey = response.headers.get('X-Location');
-    const nextLocation = JSON.parse(cacheKey);
-    const seededResponse = createFromReadableStream(response.body);
     startNavigating(() => {
-      refresh(cacheKey, seededResponse);
-      setLocation(nextLocation);
+      refresh();
+      setLocation({
+        isEditing: false,
+        selectedId: null,
+      });
     });
   }
 
@@ -141,21 +132,16 @@ function useMutation({endpoint, method}) {
     throw error;
   }
 
-  async function performMutation(payload, requestedLocation) {
+  async function performMutation(payload) {
     setIsSaving(true);
     try {
-      const response = await fetch(
-        `${endpoint}?location=${encodeURIComponent(
-          JSON.stringify(requestedLocation)
-        )}`,
-        {
-          method,
-          body: JSON.stringify(payload),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(endpoint, {
+        method,
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error(await response.text());
       }

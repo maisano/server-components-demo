@@ -9,27 +9,64 @@
 import {unstable_getCacheForType, unstable_useCacheRefresh} from 'react';
 import {createFromFetch} from 'react-server-dom-webpack';
 
-function createResponseCache() {
+function createNoteCache() {
   return new Map();
+}
+
+function createNoteListCache() {
+  return new Map();
+}
+
+export function useNote({id, isEditing}) {
+  const key = JSON.stringify({id, isEditing});
+  const cache = unstable_getCacheForType(createNoteCache);
+
+  if (cache.has(key)) {
+    return cache.get(key);
+  }
+
+  const response = createFromFetch(
+    fetch('/react?c=Note&p=' + encodeURIComponent(key))
+  );
+
+  cache.set(key, response);
+  return response;
+}
+
+export function useNoteList({searchText}) {
+  const key = JSON.stringify({searchText});
+  const cache = unstable_getCacheForType(createNoteListCache);
+
+  if (cache.has(key)) {
+    return cache.get(key);
+  }
+
+  const response = createFromFetch(
+    fetch('/react?c=NoteList&p=' + encodeURIComponent(key))
+  );
+
+  cache.set(key, response);
+  return response;
 }
 
 export function useRefresh() {
   const refreshCache = unstable_useCacheRefresh();
+  return function refresh(key) {
+    refreshCache(createNoteCache);
+    refreshCache(createNoteListCache);
+  }
+}
+
+export function useRefreshNote() {
+  const refreshCache = unstable_useCacheRefresh();
   return function refresh(key, seededResponse) {
-    refreshCache(createResponseCache, new Map([[key, seededResponse]]));
+    refreshCache(createNoteCache, new Map([[key, seededResponse]]));
   };
 }
 
-export function useServerResponse(location) {
-  const key = JSON.stringify(location);
-  const cache = unstable_getCacheForType(createResponseCache);
-  let response = cache.get(key);
-  if (response) {
-    return response;
-  }
-  response = createFromFetch(
-    fetch('/react?location=' + encodeURIComponent(key))
-  );
-  cache.set(key, response);
-  return response;
+export function useRefreshNoteList() {
+  const refreshCache = unstable_useCacheRefresh();
+  return function refresh(key, seededResponse) {
+    refreshCache(createNoteListCache, new Map([[key, seededResponse]]));
+  };
 }

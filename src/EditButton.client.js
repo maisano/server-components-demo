@@ -6,7 +6,7 @@
  *
  */
 
-import {unstable_useTransition} from 'react';
+import {unstable_useTransition, useState} from 'react';
 
 import {useLocation} from './LocationContext.client';
 
@@ -26,7 +26,6 @@ export default function EditButton({noteId, children}) {
           setLocation((loc) => ({
             selectedId: noteId,
             isEditing: true,
-            searchText: loc.searchText,
           }));
         });
       }}

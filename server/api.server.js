@@ -26,7 +26,8 @@ const {pipeToNodeWritable} = require('react-server-dom-webpack/writer');
 const path = require('path');
 const {Pool} = require('pg');
 const React = require('react');
-const ReactApp = require('../src/App.server').default;
+const NoteListServerComponent = require('../src/NoteList.server').default;
+const NoteServerComponent = require('../src/Note.server').default;
 
 // Don't keep credentials in the source tree in a real app!
 const pool = new Pool(require('../credentials'));
@@ -40,6 +41,11 @@ app.use(express.json());
 app.listen(PORT, () => {
   console.log('React Notes listening at 4000...');
 });
+
+const componentMap = {
+  NoteList: NoteListServerComponent,
+  Note: NoteServerComponent,
+};
 
 function handleErrors(fn) {
   return async function(req, res, next) {
@@ -66,31 +72,19 @@ app.get(
   })
 );
 
-async function renderReactTree(res, props) {
+async function renderReactTree(res, Cmp, props) {
   await waitForWebpack();
   const manifest = readFileSync(
     path.resolve(__dirname, '../build/react-client-manifest.json'),
     'utf8'
   );
   const moduleMap = JSON.parse(manifest);
-  pipeToNodeWritable(React.createElement(ReactApp, props), res, moduleMap);
-}
-
-function sendResponse(req, res, redirectToId) {
-  const location = JSON.parse(req.query.location);
-  if (redirectToId) {
-    location.selectedId = redirectToId;
-  }
-  res.set('X-Location', JSON.stringify(location));
-  renderReactTree(res, {
-    selectedId: location.selectedId,
-    isEditing: location.isEditing,
-    searchText: location.searchText,
-  });
+  pipeToNodeWritable(React.createElement(Cmp, props), res, moduleMap);
 }
 
 app.get('/react', function(req, res) {
-  sendResponse(req, res, null);
+  const {c: componentName, p: props} = req.query;
+  renderReactTree(res, componentMap[componentName], JSON.parse(props));
 });
 
 const NOTES_PATH = path.resolve(__dirname, '../notes');
@@ -109,7 +103,7 @@ app.post(
       req.body.body,
       'utf8'
     );
-    sendResponse(req, res, insertedId);
+    res.json();
   })
 );
 
@@ -127,7 +121,7 @@ app.put(
       req.body.body,
       'utf8'
     );
-    sendResponse(req, res, null);
+    res.json();
   })
 );
 
@@ -136,7 +130,7 @@ app.delete(
   handleErrors(async function(req, res) {
     await pool.query('delete from notes where id = $1', [req.params.id]);
     await unlink(path.resolve(NOTES_PATH, `${req.params.id}.md`));
-    sendResponse(req, res, null);
+    res.json();
   })
 );
 

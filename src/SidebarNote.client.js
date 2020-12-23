@@ -54,7 +54,6 @@ export default function SidebarNote({id, title, children, expandedChildren}) {
             setLocation((loc) => ({
               selectedId: id,
               isEditing: false,
-              searchText: loc.searchText,
             }));
           });
         }}>
