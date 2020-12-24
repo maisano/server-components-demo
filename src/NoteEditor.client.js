@@ -10,13 +10,13 @@ import {useState, unstable_useTransition} from 'react';
 
 import NotePreview from './NotePreview';
 import {useRefresh} from './Cache.client';
-import {useLocation} from './LocationContext.client';
+import {useNavigate} from './Router.client';
 
 export default function NoteEditor({noteId, initialTitle, initialBody}) {
   const refresh = useRefresh();
+  const navigate = useNavigate();
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
-  const [location, setLocation] = useLocation();
   const [startNavigating, isNavigating] = unstable_useTransition();
   const [isSaving, saveNote] = useMutation({
     endpoint: noteId !== null ? `/notes/${noteId}` : `/notes`,
@@ -32,10 +32,7 @@ export default function NoteEditor({noteId, initialTitle, initialBody}) {
 
     startNavigating(() => {
       refresh();
-      setLocation({
-        isEditing: false,
-        selectedId: noteId,
-      });
+      navigate(`/${noteId}`);
     });
   }
 
@@ -44,10 +41,7 @@ export default function NoteEditor({noteId, initialTitle, initialBody}) {
 
     startNavigating(() => {
       refresh();
-      setLocation({
-        isEditing: false,
-        selectedId: null,
-      });
+      navigate('/');
     });
   }
 
@@ -88,7 +82,7 @@ export default function NoteEditor({noteId, initialTitle, initialBody}) {
             onClick={() => handleSave()}
             role="menuitem">
             <img
-              src="checkmark.svg"
+              src="/checkmark.svg"
               width="14px"
               height="10px"
               alt=""
@@ -103,7 +97,7 @@ export default function NoteEditor({noteId, initialTitle, initialBody}) {
               onClick={() => handleDelete()}
               role="menuitem">
               <img
-                src="cross.svg"
+                src="/cross.svg"
                 width="10px"
                 height="10px"
                 alt=""

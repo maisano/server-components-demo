@@ -57,21 +57,6 @@ function handleErrors(fn) {
   };
 }
 
-app.get(
-  '/',
-  handleErrors(async function(_req, res) {
-    await waitForWebpack();
-    const html = readFileSync(
-      path.resolve(__dirname, '../build/index.html'),
-      'utf8'
-    );
-    // Note: this is sending an empty HTML shell, like a client-side-only app.
-    // However, the intended solution (which isn't built out yet) is to read
-    // from the Server endpoint and turn its response into an HTML stream.
-    res.send(html);
-  })
-);
-
 async function renderReactTree(res, Cmp, props) {
   await waitForWebpack();
   const manifest = readFileSync(
@@ -160,6 +145,21 @@ app.get('/sleep/:ms', function(req, res) {
 
 app.use(express.static('build'));
 app.use(express.static('public'));
+
+app.get(
+  ['/', '/:id', '/:id/edit'],
+  handleErrors(async function(_req, res) {
+    await waitForWebpack();
+    const html = readFileSync(
+      path.resolve(__dirname, '../build/index.html'),
+      'utf8'
+    );
+    // Note: this is sending an empty HTML shell, like a client-side-only app.
+    // However, the intended solution (which isn't built out yet) is to read
+    // from the Server endpoint and turn its response into an HTML stream.
+    res.send(html);
+  })
+);
 
 app.on('error', function(error) {
   if (error.syscall !== 'listen') {

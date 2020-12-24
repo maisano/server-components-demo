@@ -8,13 +8,15 @@
 
 import {useState, useRef, useEffect, unstable_useTransition} from 'react';
 
-import {useLocation} from './LocationContext.client';
+import {useNavigate, useActivePath} from './Router.client';
 
 export default function SidebarNote({id, title, children, expandedChildren}) {
-  const [location, setLocation] = useLocation();
+  const pathname = useActivePath();
+  const navigate = useNavigate();
   const [startTransition, isPending] = unstable_useTransition();
   const [isExpanded, setIsExpanded] = useState(false);
-  const isActive = id === location.selectedId;
+  // lol
+  const isActive = id === Number(pathname.substr(1));
 
   // Animate after title is edited.
   const itemRef = useRef(null);
@@ -50,12 +52,7 @@ export default function SidebarNote({id, title, children, expandedChildren}) {
             : '1px solid transparent',
         }}
         onClick={() => {
-          startTransition(() => {
-            setLocation((loc) => ({
-              selectedId: id,
-              isEditing: false,
-            }));
-          });
+          navigate(`/${id}`);
         }}>
         Open note for preview
       </button>
@@ -67,7 +64,7 @@ export default function SidebarNote({id, title, children, expandedChildren}) {
         }}>
         {isExpanded ? (
           <img
-            src="chevron-down.svg"
+            src="/chevron-down.svg"
             width="10px"
             height="10px"
             alt="Collapse"

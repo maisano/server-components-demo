@@ -8,10 +8,10 @@
 
 import {unstable_useTransition, useState} from 'react';
 
-import {useLocation} from './LocationContext.client';
+import {useNavigate} from './Router.client';
 
 export default function EditButton({noteId, children}) {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [startTransition, isPending] = unstable_useTransition();
   const isDraft = noteId == null;
   return (
@@ -23,10 +23,7 @@ export default function EditButton({noteId, children}) {
       disabled={isPending}
       onClick={() => {
         startTransition(() => {
-          setLocation((loc) => ({
-            selectedId: noteId,
-            isEditing: true,
-          }));
+          navigate(`/${noteId}/edit`);
         });
       }}
       role="menuitem">

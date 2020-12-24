@@ -8,11 +8,9 @@
 
 import {useState, unstable_useTransition} from 'react';
 
-import {useLocation} from './LocationContext.client';
 import Spinner from './Spinner';
 
 export default function SearchField({ searchText, setSearchText }) {
-  const [text, setText] = useState(searchText);
   const [startSearching, isSearching] = unstable_useTransition(false);
 
   return (
@@ -23,10 +21,8 @@ export default function SearchField({ searchText, setSearchText }) {
       <input
         id="sidebar-search-input"
         placeholder="Search"
-        value={searchText}
         onChange={(e) => {
           const newValue = e.target.value;
-          setText(newValue);
           startSearching(() => {
             setSearchText(newValue);
           });

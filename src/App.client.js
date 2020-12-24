@@ -10,62 +10,56 @@ import {useState, Suspense} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 
 import {useServerResponse} from './Cache.client';
-import {LocationContext} from './LocationContext.client';
 
 import Note from './Note.client';
 import NoteList from './NoteList.client';
 import EditButton from './EditButton.client';
 import SearchField from './SearchField.client';
 
+import {Route} from './Router.client';
+
 export default function App({selectedId = undefined}) {
   const [searchText, setSearchText] = useState('');
 
   return (
     <ErrorBoundary FallbackComponent={Error}>
-      <Location>
-        <div className="main">
-          <section className="col sidebar">
-            <section className="sidebar-header">
-              <img
-                className="logo"
-                src="logo.svg"
-                width="22px"
-                height="20px"
-                alt=""
-                role="presentation"
-              />
-              <strong>React Notes</strong>
-            </section>
-            <section className="sidebar-menu" role="menubar">
-              <SearchField
-                searchText={searchText}
-                setSearchText={setSearchText}
-              />
-              <EditButton noteId={null}>New</EditButton>
-            </section>
-            <nav>
-              <NoteList searchText={searchText} />
-            </nav>
+      <div className="main">
+        <section className="col sidebar">
+          <section className="sidebar-header">
+            <img
+              className="logo"
+              src="/logo.svg"
+              width="22px"
+              height="20px"
+              alt=""
+              role="presentation"
+            />
+            <strong>React Notes</strong>
           </section>
-          <section key={selectedId} className="col note-viewer">
+          <section className="sidebar-menu" role="menubar">
+            <SearchField
+              searchText={searchText}
+              setSearchText={setSearchText}
+            />
+            <EditButton noteId={null}>New</EditButton>
+          </section>
+          <nav>
+            <NoteList searchText={searchText} />
+          </nav>
+        </section>
+        <section key={selectedId} className="col note-viewer">
+          <Route path="/">
             <Note />
-          </section>
-        </div>
-      </Location>
+          </Route>
+          <Route path="/:id">
+            <Note />
+          </Route>
+          <Route path="/:id/edit">
+            <Note isEditing />
+          </Route>
+        </section>
+      </div>
     </ErrorBoundary>
-  );
-}
-
-function Location({children}) {
-  const [location, setLocation] = useState({
-    selectedId: null,
-    isEditing: false,
-  });
-
-  return (
-    <LocationContext.Provider value={[location, setLocation]}>
-      {children}
-    </LocationContext.Provider>
   );
 }
 

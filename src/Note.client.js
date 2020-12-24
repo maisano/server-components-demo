@@ -1,7 +1,8 @@
 import {Suspense} from 'react';
 
-import {useLocation} from './LocationContext.client';
 import {useNote} from './Cache.client';
+
+import {useRouteParams} from './Router.client';
 
 import NoteSkeleton from './NoteSkeleton';
 
@@ -10,12 +11,12 @@ function Content(props) {
   return noteResource.readRoot();
 }
 
-export default function Note() {
-  const [location] = useLocation();
+export default function Note({isEditing = false}) {
+  const params = useRouteParams();
 
   return (
     <Suspense fallback={<NoteSkeleton />}>
-      <Content id={location.selectedId} isEditing={location.isEditing} />
+      <Content id={params.id} isEditing={isEditing} />
     </Suspense>
   );
 }
